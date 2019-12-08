@@ -1,0 +1,38 @@
+version: "3.7"
+services:
+  app:
+    image: "ruby:2.6.5"
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - "./:/app"
+      - "bundle:/usr/local/bundle"
+    working_dir: /app
+    depends_on:
+      - selenium
+      - selenium-chrome
+      - example_site
+  example_site:
+    image: "nginx"
+    ports:
+      - "${EXAMPLE_SERVER_PORT:-80}:80"
+  selenium:
+    image: "selenium/hub"
+    ports:
+      - "${SELENIUM_SERVER_PORT:-4444}:4444"
+    environment:
+      - GRID_MAX_SESSION=${SELENIUM_NODE_COUNT:-1}
+
+  selenium-chrome:
+    image: "selenium/node-chrome-debug"
+    ports:
+      - "${SELENIUM_VNC_PORT:-15900}:5900"
+    depends_on:
+      - selenium
+    environment:
+      - HUB_HOST=selenium
+      - HUB_PORT=4444
+      - NODE_MAX_INSTANCES=1
+      - NODE_MAX_SESSION=1
+volumes:
+  bundle:
+    driver: local
